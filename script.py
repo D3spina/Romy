@@ -7,7 +7,13 @@ from telegram.ext import (
     CallbackContext, 
     CallbackQueryHandler
 )
-from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import (
+    ReplyKeyboardMarkup, 
+    ReplyKeyboardRemove, 
+    Update, 
+    InlineKeyboardButton, 
+    InlineKeyboardMarkup
+)
 import logging
 import dotenv
 from dotenv import load_dotenv, set_key
