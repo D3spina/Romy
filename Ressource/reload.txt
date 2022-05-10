@@ -1,0 +1,1 @@
+copy ./mpg.properties ./mpg-coach-bot/mpg.properties
