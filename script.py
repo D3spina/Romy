@@ -23,6 +23,8 @@ import time
 from datetime import datetime
 import subprocess
 from multiprocessing import Process
+from espn_api.hockey import League as League_hockey
+from espn_api_football import League as League_football
 
 #Load config file
 load_dotenv(dotenv_path="config")
@@ -35,8 +37,11 @@ id = int(os.getenv("id"))
 LEAGUECHOICE = range(1)
 CONFIGCHOICE, REMINDERMPG, RAPPELMPG, CODELEAGUE, NEWLIGUE = range(5)
 DELLIGUE, DELCODELEAGUE = range(2)
+SPORT, NEWHOCKEYLIGUE, IDHOCKEY = range(3)
 League = []
 Rappel_league = []
+League_id_Hockey = []
+reminder_hockey = "Non"
 
 print("Le robot est connecté comme Romy.")
 
@@ -261,6 +266,48 @@ def Bouble_Reminder_MPG():
             else:
                 time.sleep(59)
 
+def config_espn(update: Update, context: CallbackContext) -> str:
+    reply_keyboard = [['/Football', '/Hockey']]
+    context.bot.send_message(chat_id=id, text="Quelle sport configurer ?", reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True),)
+
+    return SPORT
+
+def config_hockey(update: Update, context: CallbackContext) -> str:
+    context.bot.send_message(chad_id=if, text="Quelle est l'id de la ligue ?\n /Continue pour en rajouter une suivante.\n /Suivant pour passer à la suite")
+
+    return IDHOCKEY
+
+def Add_id_Hockey(update: Update, context: CallbackContext) -> str:
+    ligue = str(update.message.text)
+    if ligue in League_id_Hockey:
+        context.bot.send_message(chat_id=id, text="La ligue " + ligue + " est déjà enregistrée.")
+    else:
+        League.append(ligue)
+        context.bot.send_message(chat_id=id, text="La ligue " + ligue + " a été rajoutée.")
+
+    return NEWHOCKEYLIGUE
+
+def Reminder_Hockey(update: Update, context: CallbackContext) -> str:
+    reply_keyboard = [['Oui', 'Non']]
+    context.bot.send_message(chat_id=id, text="Souhaitez-vous un rappel automatique pour faire votre équipe ?", reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True),)
+
+    return REMINDERHOCKEY
+
+def end_hockey_conversation(update: Update, context: CallbackContext) -> str:
+    reminder_hockey = str(update.message.text)
+    if reminder_hockey == "Oui":
+        #envoyer message final avec list Ligue, et si Reminder.
+    if reminder_hockey == "Non":
+        #envoyer message final avec list Ligue, et non Reminder
+
+#Rajouter un bout de conversation pour identifier l'équipe du joueur parmis l'ensemble des équipes
+#mais du coup trop de state donc voir pour conversation imbriqué, une pour le hockey, une pour le football, tout ça dans la conversation config espn
+#Heure rappel par défaut : 09:00, paramétrage ou prédef à voir dans une future maj ?
+#Pour football, copier la conversation et change hockey to football in variable
+#vérifier l'import de League de espn API
+#Rajouter date création de la ligue dans la config car year = en cours ne fonctionnera pas début 2023 pour une ligue créer en 2022
+#Modificer handler hockey car attends commande oui / non pour le rappel, alors que la fonction renvoie un message
+
 #Principal function
 def main() -> None:
     # Updater class for read the channel
@@ -316,7 +363,22 @@ def main() -> None:
     config_espn_handler = ConversationHandler(
         entry_points=[CommandHandler("ESPN", config_espn)],
         states={
-
+            SPORT: [
+                CommandHandler("Hockey", config_hockey)
+                CommandHandler("Football", config_football)
+            ]
+            IDHOCKEY: [
+                CommandHandler(Filters.text & (~Filters.command), Add_id_Hockey),
+                CommandHandler("Suivant", end_conversation)
+            ]
+            NEWHOCKEYLIGUE: [
+                CommandHandler("Continue", config_hockey),
+                CommandHandler("Suivant", end_conversation)
+            ]
+            REMINDERHOCKEY: [
+                CommandHandler("Oui", end_hockey_conversation),
+                CommandHandler("Non", end_hockey_conversation)
+            ]
         },
         fallbacks=[CommandHandler("cancel", cancel)],
     )   

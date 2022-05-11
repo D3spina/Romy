@@ -40,17 +40,17 @@ Host the bot (Heroku, Google Cloud, Amazon AWS ...) and run script.py
 
 ## And now ?
 
-  - Get out from Beta
+  - Get out from Beta (Expenting for 2022 October after several test with the next season)
 
-  - Add Premier league and liga calendar 
+  - Add Premier league and liga calendar (Waiting official Calendar)
 
   - Add mpg-coach-bot text in telegram
   - Add informations about match day on mpg (opposant, etc...)
   - Add ESPN Fantasy for Football, NHL maybe more(https://github.com/cwendt94/espn-api)
 
-  - Add configurations commands instead of config files
+  - Add configurations commands instead of config files (-> In progress, ok for MPG and coding for ESPN Fantasy)
 
-  - Switch code in full english
+  - Switch code in full english (-> OK)
 
 ## Build with
 
