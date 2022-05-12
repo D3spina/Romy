@@ -37,13 +37,11 @@ id = int(os.getenv("id"))
 LEAGUECHOICE = range(1)
 CONFIGCHOICE, REMINDERMPG, RAPPELMPG, CODELEAGUE, NEWLIGUE = range(5)
 DELLIGUE, DELCODELEAGUE = range(2)
-SPORT, NEWHOCKEYLIGUE, IDHOCKEY = range(3)
+SPORT, NEWHOCKEYLIGUE, IDHOCKEY, REMINDERHOCKEY = range(4)
 League = []
 Rappel_league = []
 League_id_Hockey = []
 reminder_hockey = "Non"
-
-print("Le robot est connecté comme Romy.")
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO
@@ -248,7 +246,7 @@ def unknow(update: Update, context: CallbackContext) -> str:
     context.bot.send_message(chat_id=id, text="Cette commande n'existe pas")
 
 #Reminder for MPG
-def Bouble_Reminder_MPG():
+def Boucle_Reminder_MPG():
     while True:
         if len(Rappel_league) > 0:
             heure = time.ctime()
@@ -273,7 +271,7 @@ def config_espn(update: Update, context: CallbackContext) -> str:
     return SPORT
 
 def config_hockey(update: Update, context: CallbackContext) -> str:
-    context.bot.send_message(chad_id=if, text="Quelle est l'id de la ligue ?\n /Continue pour en rajouter une suivante.\n /Suivant pour passer à la suite")
+    context.bot.send_message(chad_id=id, text="Quelle est l'id de la ligue ?\n /Continue pour en rajouter une suivante.\n /Suivant pour passer à la suite")
 
     return IDHOCKEY
 
@@ -296,8 +294,10 @@ def Reminder_Hockey(update: Update, context: CallbackContext) -> str:
 def end_hockey_conversation(update: Update, context: CallbackContext) -> str:
     reminder_hockey = str(update.message.text)
     if reminder_hockey == "Oui":
+        context.bot.send_message(chat_id=id, text="ok")
         #envoyer message final avec list Ligue, et si Reminder.
-    if reminder_hockey == "Non":
+    elif reminder_hockey == "Non":
+        context.bot.send_message(chat_id=id, text="ok")
         #envoyer message final avec list Ligue, et non Reminder
 
 #Rajouter un bout de conversation pour identifier l'équipe du joueur parmis l'ensemble des équipes
@@ -365,21 +365,21 @@ def main() -> None:
         entry_points=[CommandHandler("ESPN", config_espn)],
         states={
             SPORT: [
-                CommandHandler("Hockey", config_hockey)
-                CommandHandler("Football", config_football)
-            ]
+                CommandHandler("Hockey", config_hockey),
+                CommandHandler("Football", end_conversation),
+            ],
             IDHOCKEY: [
-                CommandHandler(Filters.text & (~Filters.command), Add_id_Hockey),
-                CommandHandler("Suivant", end_conversation)
-            ]
+                MessageHandler(Filters.text & (~Filters.command), Add_id_Hockey),
+                CommandHandler("Suivant", end_conversation),
+            ],
             NEWHOCKEYLIGUE: [
                 CommandHandler("Continue", config_hockey),
-                CommandHandler("Suivant", end_conversation)
-            ]
+                CommandHandler("Suivant", end_conversation),
+            ],
             REMINDERHOCKEY: [
-                CommandHandler("Oui", end_hockey_conversation),
-                CommandHandler("Non", end_hockey_conversation)
-            ]
+                MessageHandler(Filters.regex("Oui"), end_hockey_conversation),
+                MessageHandler(Filters.regex("Non"), end_hockey_conversation),
+            ],
         },
         fallbacks=[CommandHandler("cancel", cancel)],
     )   
