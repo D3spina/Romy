@@ -51,7 +51,7 @@ logger = logging.getLogger(__name__)
 
 # /start command for bot start
 def start(update: Update, context: CallbackContext) -> int:
-    reply_keyboard = [['/MPG', '/ESPN']]
+    reply_keyboard = [['MPG', 'ESPN']]
     if int(update.message.chat.id) == int(id):
         context.bot.send_message(chat_id=id, text="Bienvenue ! Je suis Romy!\n"
             "Prenons déjà le temps de me configurer.\n\n"
@@ -62,7 +62,7 @@ def start(update: Update, context: CallbackContext) -> int:
 
 #Start reminder
 def config_mpg(update: Update, context: CallbackContext) -> str:
-    reply_keyboard = [['/Oui', '/Non']]
+    reply_keyboard = [['Oui', 'Non']]
     context.bot.send_message(chat_id=id, text="Souhaitez-vous un rappel automatique pour faire votre équipe ?", reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True),)
 
     return REMINDERMPG
@@ -265,23 +265,23 @@ def Boucle_Reminder_MPG():
                 time.sleep(59)
 
 def config_espn(update: Update, context: CallbackContext) -> str:
-    reply_keyboard = [['/Football', '/Hockey']]
+    reply_keyboard = [['Football', 'Hockey']]
     context.bot.send_message(chat_id=id, text="Quelle sport configurer ?", reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True),)
 
     return SPORT
 
 def config_hockey(update: Update, context: CallbackContext) -> str:
-    context.bot.send_message(chad_id=id, text="Quelle est l'id de la ligue ?\n /Continue pour en rajouter une suivante.\n /Suivant pour passer à la suite")
+    context.bot.send_message(chat_id=id, text="Quelle est l'id de la ligue ?\n /Continue pour en rajouter une suivante.\n /Suivant pour passer à la suite")
 
     return IDHOCKEY
 
 def Add_id_Hockey(update: Update, context: CallbackContext) -> str:
-    ligue = str(update.message.text)
-    if ligue in League_id_Hockey:
-        context.bot.send_message(chat_id=id, text="La ligue " + ligue + " est déjà enregistrée.")
+    ligue_hockey = str(update.message.text)
+    if ligue_hockey in League_id_Hockey:
+        context.bot.send_message(chat_id=id, text="La ligue " + ligue_hockey + " est déjà enregistrée.")
     else:
-        League.append(ligue)
-        context.bot.send_message(chat_id=id, text="La ligue " + ligue + " a été rajoutée.")
+        League_id_Hockey.append(ligue_hockey)
+        context.bot.send_message(chat_id=id, text="La ligue " + ligue_hockey + " a été rajoutée.")
 
     return NEWHOCKEYLIGUE
 
@@ -294,11 +294,13 @@ def Reminder_Hockey(update: Update, context: CallbackContext) -> str:
 def end_hockey_conversation(update: Update, context: CallbackContext) -> str:
     reminder_hockey = str(update.message.text)
     if reminder_hockey == "Oui":
-        context.bot.send_message(chat_id=id, text="ok")
+        print_league_hockey = ', '.join(League_id_Hockey)
+        context.bot.send_message(chat_id=id, text="Voici le récapitulatif de vos paramètres Hockey.\n"
+        "Rappel pour la NHL : " + reminder_hockey + " \n" + 'Vous avez ajouté les ligues suivantes : ' +  print_league_hockey)
         #envoyer message final avec list Ligue, et si Reminder.
     elif reminder_hockey == "Non":
-        context.bot.send_message(chat_id=id, text="ok")
-        #envoyer message final avec list Ligue, et non Reminder
+        context.bot.send_message(chat_id=id, text="Voici le récapitulatif de vos paramètres Hockey.\n"
+        "Rappel pour la NHL : " + reminder_hockey + " \n" + 'Vous avez ajouté les ligues suivantes : ' +  print_league_hockey)
 
 #Rajouter un bout de conversation pour identifier l'équipe du joueur parmis l'ensemble des équipes
 #mais du coup trop de state donc voir pour conversation imbriqué, une pour le hockey, une pour le football, tout ça dans la conversation config espn
@@ -306,7 +308,6 @@ def end_hockey_conversation(update: Update, context: CallbackContext) -> str:
 #Pour football, copier la conversation et change hockey to football in variable
 #vérifier l'import de League de espn API
 #Rajouter date création de la ligue dans la config car year = en cours ne fonctionnera pas début 2023 pour une ligue créer en 2022
-#Modificer handler hockey car attends commande oui / non pour le rappel, alors que la fonction renvoie un message
 #Infos : connaitre joueur indispo ; prochaine oppo avec rappel ; résumé résultat après chaque semaine ; résumé quotidien des nouvelles activités
 
 #Principal function
@@ -327,11 +328,11 @@ def main() -> None:
     
     # Add the conversation handler for config MPG
     config_mpg_handler = ConversationHandler(
-        entry_points=[CommandHandler("MPG", config_mpg)],
+        entry_points=[MessageHandler(Filters.regex("MPG"), config_mpg)],
         states={
             REMINDERMPG: [
-                CommandHandler("Oui", rappel_mpg),
-                CommandHandler("Non", config_mpg_league),
+                MessageHandler(Filters.regex("Oui"), rappel_mpg),
+                MessageHandler(Filters.regex("Non"), config_mpg_league),
             ],
             RAPPELMPG: [CommandHandler("Suivant", config_mpg_league)],
             CODELEAGUE: [
@@ -362,19 +363,19 @@ def main() -> None:
 
     # More to come
     config_espn_handler = ConversationHandler(
-        entry_points=[CommandHandler("ESPN", config_espn)],
+        entry_points=[MessageHandler(Filters.regex("ESPN"), config_espn)],
         states={
             SPORT: [
-                CommandHandler("Hockey", config_hockey),
-                CommandHandler("Football", end_conversation),
+                MessageHandler(Filters.regex("Hockey"), config_hockey),
+                MessageHandler(Filters.regex("Football"), end_conversation),
             ],
             IDHOCKEY: [
                 MessageHandler(Filters.text & (~Filters.command), Add_id_Hockey),
-                CommandHandler("Suivant", end_conversation),
+                CommandHandler("Suivant", Reminder_Hockey),
             ],
             NEWHOCKEYLIGUE: [
                 CommandHandler("Continue", config_hockey),
-                CommandHandler("Suivant", end_conversation),
+                CommandHandler("Suivant", Reminder_Hockey),
             ],
             REMINDERHOCKEY: [
                 MessageHandler(Filters.regex("Oui"), end_hockey_conversation),
