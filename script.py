@@ -24,7 +24,7 @@ from datetime import datetime
 import subprocess
 from multiprocessing import Process
 from espn_api.hockey import League as League_hockey
-from espn_api_football import League as League_football
+from espn_api.football import League as League_football
 
 #Load config file
 load_dotenv(dotenv_path="config")
@@ -307,6 +307,7 @@ def end_hockey_conversation(update: Update, context: CallbackContext) -> str:
 #vérifier l'import de League de espn API
 #Rajouter date création de la ligue dans la config car year = en cours ne fonctionnera pas début 2023 pour une ligue créer en 2022
 #Modificer handler hockey car attends commande oui / non pour le rappel, alors que la fonction renvoie un message
+#Infos : connaitre joueur indispo ; prochaine oppo avec rappel ; résumé résultat après chaque semaine ; résumé quotidien des nouvelles activités
 
 #Principal function
 def main() -> None:
