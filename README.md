@@ -16,18 +16,9 @@ Fact, Romy is my cat.
 
   - Edit the config files with the desired settings
     - Token= Your telegram bot Token(see https://sendpulse.com/knowledge-base/chatbot/create-telegram-chatbot for more informations)
-    - Reminder_NHL= Oui or Non
-    - Reminder_MPG= Oui or Non
-    - Reminder_L1= Oui or Non
-    - Reminder_L2= Oui or Non
-    - Reminder_Bundesliga= Oui or Non
-    - Reminder_PremierLeague= Oui or Non
-    - Reminder_Liga= Oui or Non
-    - league= CodeLeague CodeLeague etc...
-    - Heure_rappel_NHL= hh:mm
     - id= Your chat ID
 
-  - Edit MPG Properties on root AND in /Ressource with your username and password. You can change settings (see https://github.com/axel3rd/mpg-coach-bot for more informations)
+  - Edit MPG Properties in /Ressource and /Ressource/mpg-coach-bot with your username and password. You can change settings (see https://github.com/axel3rd/mpg-coach-bot for more informations)
 
 
 ### Run
@@ -36,7 +27,7 @@ Host the bot (Heroku, Google Cloud, Amazon AWS ...) and run script.py
 
 ## Known bugs
   
-  - Rappel command don't work since the end of the current league
+  - 
 
 ## And now ?
 
