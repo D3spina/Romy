@@ -27,7 +27,7 @@ from espn_api.hockey import League as League_hockey
 from espn_api.football import League as League_football
 
 #Load config file
-load_dotenv(dotenv_path="config")
+load_dotenv(dotenv_path="./Ressource/config")
 
 #Get variable fom config file
 Token = os.getenv("Token")
@@ -267,6 +267,15 @@ def Boucle_Reminder_MPG():
             else:
                 time.sleep(59)
 
+def Boucle_Reminder_Hockey():
+    while True:
+        if reminder_hockey == "Oui":
+            heure = time.ctime()
+            if "20:51" in heure[11]+heure[12]+heure[13]+heure[14]+heure[15]:
+                updater = Updater(Token)
+                updater.bot.sendMessage(chat_id='5300181281', text=('Il est temps de regarder ta TEAM NHL !'))
+                time.sleep(60)
+
 def config_espn(update: Update, context: CallbackContext) -> str:
     reply_keyboard = [['Football', 'Hockey']]
     context.bot.send_message(chat_id=id, text="Quelle sport configurer ?", reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True),)
@@ -455,4 +464,5 @@ def main() -> None:
 
 if __name__ == '__main__':
     Process(target=Boucle_Reminder_MPG).start()
+    Process(target=Boucle_Reminder_Hockey).start()
     main()
