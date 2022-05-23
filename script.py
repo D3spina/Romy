@@ -1,12 +1,11 @@
 import json
 import logging
 import os
-import subprocess
 import time
 from datetime import datetime
 from multiprocessing import Process
 
-from dotenv import load_dotenv, set_key
+from dotenv import load_dotenv
 from telegram import (
     ReplyKeyboardMarkup,
     ReplyKeyboardRemove,
@@ -23,6 +22,7 @@ from telegram.ext import (
     CallbackContext,
     CallbackQueryHandler
 )
+from MPG import update_mpg_league
 
 # Load config file
 load_dotenv(dotenv_path="./Ressource/config")
@@ -222,17 +222,7 @@ def auto(update: Update, context: CallbackContext) -> range:
 
 # Next of the conversation about automatic update of mpg_coach
 def leaguechoice(update: Update, context: CallbackContext) -> int:
-    # Add the choice in the configuration files of mpg_coach
-    load_dotenv('./Ressource/mpg-coach-bot/mpg.properties')
-    set_key('./Ressource/mpg-coach-bot/mpg.properties', "'leagues.include'", str(update.message.text))
-
-    # Execute shell script
-    if os.name == 'nt':
-        subprocess.run('./Ressource/mpg-coach-bot/mpg-coach-bot.bat', shell=True, stdout=subprocess.PIPE)
-        subprocess.run('./reload.bat')
-    else:
-        subprocess.run('./Ressource/mpg-coach-bot/mpg-coach.sh', shell=True, stdout=subprocess.PIPE)
-        subprocess.run('./reload.sh')
+    update_mpg_league(str(update.message.text))
 
     context.bot.send_message(chat_id=id, text="La mise à jours de l'équipe a été effectué.",
                              reply_markup=ReplyKeyboardRemove(), )
