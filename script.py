@@ -92,7 +92,7 @@ def rappel_mpg(update: Update, context: CallbackContext) -> str:
     return RAPPELMPG
 
 
-# Get data to add championship in list (upgrade with for loop)
+# Get data to add championship in list (upgrade with loop)
 def callback_query_handler(update: Update, context: CallbackContext):
     cqd = update.callback_query.data
     if cqd == "Ligue 1":
