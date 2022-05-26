@@ -1,10 +1,6 @@
-import json
 import logging
+from crontab import CronTab
 import os
-import time
-from datetime import datetime
-from multiprocessing import Process
-
 from dotenv import load_dotenv
 from telegram import (
     ReplyKeyboardMarkup,
@@ -29,7 +25,7 @@ load_dotenv(dotenv_path="./Ressource/config")
 
 # Get variable fom config file
 Token = os.getenv("Token")
-id = int(os.getenv("id"))
+user_id = int(os.getenv("id"))
 
 # Local variable
 LEAGUECHOICE = range(1)
@@ -54,12 +50,12 @@ logger = logging.getLogger(__name__)
 # /start command for bot start
 def start(update: Update, context: CallbackContext) -> int:
     reply_keyboard = [['MPG', 'ESPN']]
-    if int(update.message.chat.id) == id:
-        context.bot.send_message(chat_id=id, text="Bienvenue ! Je suis Romy!\n"
-                                                  "Prenons déjà le temps de me configurer.\n\n"
-                                                  "Vous pouvez annuler à tout moment avec /cancel\n\n"
-                                                  "Souhaitez-vous commencer par Mon Petit Gazon ou une ligue ESPN ?",
-                                 reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True), )
+    if int(update.message.chat.id) == user_id:
+        context.bot.send_message(chat_id=user_id, text="Bienvenue ! Je suis Romy!\n"
+                "Prenons déjà le temps de me configurer.\n\n"
+                "Vous pouvez annuler à tout moment avec /cancel\n\n"
+                "Souhaitez-vous commencer par Mon Petit Gazon ou une ligue ESPN ?",
+                reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True), )
 
     return CONFIGCHOICE
 
@@ -67,7 +63,7 @@ def start(update: Update, context: CallbackContext) -> int:
 # Start reminder
 def config_mpg(update: Update, context: CallbackContext) -> str:
     reply_keyboard = [['Oui', 'Non']]
-    context.bot.send_message(chat_id=id, text="Souhaitez-vous un rappel automatique pour faire votre équipe ?",
+    context.bot.send_message(chat_id=user_id, text="Souhaitez-vous un rappel automatique pour faire votre équipe ?",
                              reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True), )
 
     return REMINDERMPG
@@ -86,7 +82,7 @@ def rappel_mpg(update: Update, context: CallbackContext) -> str:
         ]
     ]
 
-    context.bot.send_message(chat_id=id, text="Pour quelle championnat ? \n Utiliser /Suivant une fois terminée\n",
+    context.bot.send_message(chat_id=user_id, text="Pour quelle championnat ? \n Utiliser /Suivant une fois terminée\n",
                              reply_markup=InlineKeyboardMarkup(button_rappel_mpg), )
 
     return RAPPELMPG
@@ -94,51 +90,55 @@ def rappel_mpg(update: Update, context: CallbackContext) -> str:
 
 # Get data to add championship in list (upgrade with loop)
 def callback_query_handler(update: Update, context: CallbackContext):
+    cron = CronTab(user=True)
+    job = cron.new(command='python3 ./Reminder/MPG.py')
+    job.hour.on(9)
+    cron.write()
     cqd = update.callback_query.data
     if cqd == "Ligue 1":
         if "Ligue 1" in Rappel_league:
             Rappel_league.remove("Ligue 1")
-            context.bot.send_message(chat_id=id, text="Ligue 1 retirée du rappel.")
+            context.bot.send_message(chat_id=user_id, text="Ligue 1 retirée du rappel.")
         else:
             Rappel_league.append("Ligue 1")
-            context.bot.send_message(chat_id=id, text="Ligue 1 ajoutée au rappel.")
+            context.bot.send_message(chat_id=user_id, text="Ligue 1 ajoutée au rappel.")
     if cqd == "Ligue 2":
         if "Ligue 2" in Rappel_league:
             Rappel_league.remove("Ligue 2")
-            context.bot.send_message(chat_id=id, text="Ligue 2 retirée du rappel.")
+            context.bot.send_message(chat_id=user_id, text="Ligue 2 retirée du rappel.")
         else:
             Rappel_league.append("Ligue 2")
-            context.bot.send_message(chat_id=id, text="Ligue 2 ajoutée au rappel.")
+            context.bot.send_message(chat_id=user_id, text="Ligue 2 ajoutée au rappel.")
     if cqd == "Bundesliga":
         if "Bundesliga" in Rappel_league:
             Rappel_league.remove("Bundesliga")
-            context.bot.send_message(chat_id=id, text="Bundesliga retirée du rappel.")
+            context.bot.send_message(chat_id=user_id, text="Bundesliga retirée du rappel.")
         else:
             Rappel_league.append("Bundesliga")
-            context.bot.send_message(chat_id=id, text="Bundesliga ajoutée au rappel.")
+            context.bot.send_message(chat_id=user_id, text="Bundesliga ajoutée au rappel.")
     if cqd == "Liga":
         if "Liga" in Rappel_league:
             Rappel_league.remove("Liga")
-            context.bot.send_message(chat_id=id, text="Liga retirée du rappel")
+            context.bot.send_message(chat_id=user_id, text="Liga retirée du rappel")
         else:
             Rappel_league.append("Liga")
-            context.bot.send_message(chat_id=id, text="Liga ajoutée au rappel.")
+            context.bot.send_message(chat_id=user_id, text="Liga ajoutée au rappel.")
     if cqd == "Premier League":
         if "Premier League" in Rappel_league:
             Rappel_league.remove("Premier League")
-            context.bot.send_message(chat_id=id, text="Premier League retirée du rappel.")
+            context.bot.send_message(chat_id=user_id, text="Premier League retirée du rappel.")
         else:
             Rappel_league.append("Premier League")
-            context.bot.send_message(chat_id=id, text="Premier League ajoutée au rappel.")
+            context.bot.send_message(chat_id=user_id, text="Premier League ajoutée au rappel.")
 
     return Rappel_league
 
 
 def config_mpg_league(update: Update, context: CallbackContext) -> str:
-    context.bot.send_message(chat_id=id, text="Merci de renseigner le code de votre première ligue MPG.\n"
-                                              "Utiliser /Continue pour en rajouter une autre.\n"
-                                              "Utiliser /Suivant une fois terminée.\n\n"
-                                              "Vous pouvez retrouver le code dans les paramètres de la ligue sur l'application ou demander au créateur de cette dernière.")
+    context.bot.send_message(chat_id=user_id, text="Merci de renseigner le code de votre première ligue MPG.\n"
+            "Utiliser /Continue pour en rajouter une autre.\n"
+            "Utiliser /Suivant une fois terminée.\n\n"
+            "Vous pouvez retrouver le code dans les paramètres de la ligue sur l'application ou demander au créateur de cette dernière.")
 
     return CODELEAGUE
 
@@ -146,10 +146,10 @@ def config_mpg_league(update: Update, context: CallbackContext) -> str:
 def add_mpg_ligue(update: Update, context: CallbackContext) -> str:
     ligue = str(update.message.text)
     if ligue in League:
-        context.bot.send_message(chat_id=id, text="La ligue " + ligue + " est déjà enregistrée.")
+        context.bot.send_message(chat_id=user_id, text="La ligue " + ligue + " est déjà enregistrée.")
     else:
         League.append(ligue)
-        context.bot.send_message(chat_id=id, text="La ligue " + ligue + " a été rajoutée.")
+        context.bot.send_message(chat_id=user_id, text="La ligue " + ligue + " a été rajoutée.")
 
     return NEWLIGUE
 
@@ -157,7 +157,7 @@ def add_mpg_ligue(update: Update, context: CallbackContext) -> str:
 def delete_mpg_league(update: Update, context: CallbackContext) -> str:
     reply_keyboard = [League]
 
-    context.bot.send_message(chat_id=id, text="Merci de renseigner le code de la ligue à retirer.\n"
+    context.bot.send_message(chat_id=user_id, text="Merci de renseigner le code de la ligue à retirer.\n"
                                               "Utiliser /Continue pour en supprimer une autre.\n"
                                               "Utiliser /Terminer une fois terminée.\n\n"
                                               "Vous pouvez retrouver le code dans les paramètres de la ligue sur l'application ou demander au créateur de cette dernière.",
@@ -170,7 +170,7 @@ def delete_mpg_league(update: Update, context: CallbackContext) -> str:
 def del_mpg_ligue(update: Update, context: CallbackContext) -> str:
     ligue = str(update.message.text)
     League.remove(ligue)
-    context.bot.send_message(chat_id=id, text="La ligue " + ligue + " a été retirée.")
+    context.bot.send_message(chat_id=user_id, text="La ligue " + ligue + " a été retirée.")
 
     return DELLIGUE
 
@@ -181,24 +181,24 @@ def fin_config_mpg(update: Update, context: CallbackContext) -> str:
         Reminder_mpg = "Oui"
         print_league = ', '.join(League)
         print_rappel = ', '.join(Rappel_league)
-        context.bot.send_message(chat_id=id, text="Voici le récapitulatif de vos paramètres MPG.\n"
+        context.bot.send_message(chat_id=user_id, text="Voici le récapitulatif de vos paramètres MPG.\n"
                                                   "Rappel pour MPG : "
-                                                  + str(Reminder_mpg) + " \n"
-                                                  + 'Vous avez ajouté les ligues suivantes : ' + print_league + "\n" + 'Vous avez rajouté un rappel pour les championnats suivant : ' + print_rappel)
+                                                       + str(Reminder_mpg) + " \n"
+                                                       + 'Vous avez ajouté les ligues suivantes : ' + print_league + "\n" + 'Vous avez rajouté un rappel pour les championnats suivant : ' + print_rappel)
     else:
         Reminder_mpg = "Non"
         print_league = ''
         print_rappel = ''
-        context.bot.send_message(chat_id=id, text="Voici le récapitulatif de vos paramètres MPG.\n"
+        context.bot.send_message(chat_id=user_id, text="Voici le récapitulatif de vos paramètres MPG.\n"
                                                   "Rappel pour MPG : " + str(Reminder_mpg) + " \n"
-                                                  + 'Vous avez ajouté les ligues suivantes : ' + print_league + "\n" + 'Vous avez rajouté un rappel pour les championnats suivant : ' + print_rappel)
+                                                       + 'Vous avez ajouté les ligues suivantes : ' + print_league + "\n" + 'Vous avez rajouté un rappel pour les championnats suivant : ' + print_rappel)
 
     return ConversationHandler.END
 
 
 # About unknow command by user
 def unknow(update: Update, context: CallbackContext):
-    context.bot.send_message(chat_id=id, text="Cette commande n'existe pas")
+    context.bot.send_message(chat_id=user_id, text="Cette commande n'existe pas")
 
 
 # End conversation without new state
@@ -211,7 +211,7 @@ def auto(update: Update, context: CallbackContext) -> range:
     # Load every code league in keyboard
     reply_keyboard = [League]
 
-    context.bot.send_message(chat_id=id, text='Vous souhaitez mettre à jours votre équipe.\n'
+    context.bot.send_message(chat_id=user_id, text='Vous souhaitez mettre à jours votre équipe.\n'
                                               'Send /cancel pour annuler.\n\n'
                                               'Pour quelle ligue le souhaitez vous ?',
                              reply_markup=ReplyKeyboardMarkup(
@@ -224,7 +224,7 @@ def auto(update: Update, context: CallbackContext) -> range:
 def leaguechoice(update: Update, context: CallbackContext) -> int:
     update_mpg_league(str(update.message.text))
 
-    context.bot.send_message(chat_id=id, text="La mise à jours de l'équipe a été effectué.",
+    context.bot.send_message(chat_id=user_id, text="La mise à jours de l'équipe a été effectué.",
                              reply_markup=ReplyKeyboardRemove(), )
 
     return ConversationHandler.END
@@ -232,7 +232,7 @@ def leaguechoice(update: Update, context: CallbackContext) -> int:
 
 # Get the URL of super league
 def superleague(update: Update, context: CallbackContext):
-    context.bot.send_message(chat_id=id, text="http://guillaumegangloff.free.fr")
+    context.bot.send_message(chat_id=user_id, text="http://guillaumegangloff.free.fr")
 
 
 # Cancel conversations
@@ -242,47 +242,16 @@ def cancel(update: Update, context: CallbackContext) -> int:
     return ConversationHandler.END
 
 
-# Reminder for MPG
-def boucle_reminder_mpg():
-    while True:
-        if len(Rappel_league) > 0:
-            heure = time.ctime()
-            if '09:00' in heure[11] + heure[12] + heure[13] + heure[14] + heure[15]:
-                for i in Rappel_league:
-                    date = datetime.today()
-                    with open('./Ressource/calendar.json', encoding='utf-8') as json_file:
-                        data = json.load(json_file)
-                    date_j = str(str(date.year) + '-' + str(date.month) + '-' + str(date.day))
-                    data_j = data[i]
-                    for j in data_j:
-                        if data_j[j] == date_j:
-                            updater = Updater(Token)
-                            updater.bot.sendMessage(chat_id=id, text=(
-                                'C\'est le jour J pour la Ligue 1, pense à ton équipe ou utilise /Auto'))
-            else:
-                time.sleep(59)
-
-
-def boucle_reminder_hockey():
-    while True:
-        if reminder_hockey == "Oui":
-            heure = time.ctime()
-            if "20:51" in heure[11] + heure[12] + heure[13] + heure[14] + heure[15]:
-                updater = Updater(Token)
-                updater.bot.sendMessage(chat_id='5300181281', text='Il est temps de regarder ta TEAM NHL !')
-                time.sleep(60)
-
-
 def config_espn(update: Update, context: CallbackContext) -> str:
     reply_keyboard = [['Football', 'Hockey']]
-    context.bot.send_message(chat_id=id, text="Quelle sport configurer ?",
+    context.bot.send_message(chat_id=user_id, text="Quelle sport configurer ?",
                              reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True), )
 
     return SPORT
 
 
 def config_hockey(update: Update, context: CallbackContext) -> str:
-    context.bot.send_message(chat_id=id,
+    context.bot.send_message(chat_id=user_id,
                              text="Quelle est l'id de la ligue ?\n /Continue pour en rajouter une suivante.\n /Suivant pour passer à la suite")
 
     return IDHOCKEY
@@ -291,17 +260,17 @@ def config_hockey(update: Update, context: CallbackContext) -> str:
 def add_id_hockey(update: Update, context: CallbackContext) -> str:
     ligue_hockey = str(update.message.text)
     if ligue_hockey in League_id_Hockey:
-        context.bot.send_message(chat_id=id, text="La ligue " + ligue_hockey + " est déjà enregistrée.")
+        context.bot.send_message(chat_id=user_id, text="La ligue " + ligue_hockey + " est déjà enregistrée.")
     else:
         League_id_Hockey.append(ligue_hockey)
-        context.bot.send_message(chat_id=id, text="La ligue " + ligue_hockey + " a été rajoutée.")
+        context.bot.send_message(chat_id=user_id, text="La ligue " + ligue_hockey + " a été rajoutée.")
 
     return NEWHOCKEYLIGUE
 
 
-def reminder_hockey(update: Update, context: CallbackContext) -> str:
+def config_reminder_hockey(update: Update, context: CallbackContext) -> str:
     reply_keyboard = [['Oui', 'Non']]
-    context.bot.send_message(chat_id=id, text="Souhaitez-vous un rappel automatique pour faire votre équipe ?",
+    context.bot.send_message(chat_id=user_id, text="Souhaitez-vous un rappel automatique pour faire votre équipe ?",
                              reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True), )
 
     return REMINDERHOCKEY
@@ -309,22 +278,26 @@ def reminder_hockey(update: Update, context: CallbackContext) -> str:
 
 def end_hockey_conversation(update: Update, context: CallbackContext) -> str:
     if str(update.message.text) == "Oui":
+        cron = CronTab(user=True)
+        job = cron.new(command="python3 ./Reminder/Hockey.py")
+        job.hour.on(9)
+        cron.write()
         print_league_hockey = ', '.join(League_id_Hockey)
-        context.bot.send_message(chat_id=id, text="Voici le récapitulatif de vos paramètres Hockey.\n"
+        context.bot.send_message(chat_id=user_id, text="Voici le récapitulatif de vos paramètres Hockey.\n"
                                                   "Rappel : " + str(update.message.text)
-                                                  + " \n" + 'Vous avez ajouté les ligues suivantes : ' + print_league_hockey)
+                                                       + " \n" + 'Vous avez ajouté les ligues suivantes : ' + print_league_hockey)
         # envoyer message final avec list Ligue, et si Reminder.
     elif str(update.message.text) == "Non":
         print_league_hockey = ', '.join(League_id_Hockey)
-        context.bot.send_message(chat_id=id, text="Voici le récapitulatif de vos paramètres Hockey.\n"
+        context.bot.send_message(chat_id=user_id, text="Voici le récapitulatif de vos paramètres Hockey.\n"
                                                   "Rappel : " + str(update.message.text)
-                                                  + " \n" + 'Vous avez ajouté les ligues suivantes : ' + print_league_hockey)
+                                                       + " \n" + 'Vous avez ajouté les ligues suivantes : ' + print_league_hockey)
 
     return ConversationHandler.END
 
 
 def config_football(update: Update, context: CallbackContext) -> str:
-    context.bot.send_message(chat_id=id,
+    context.bot.send_message(chat_id=user_id,
                              text="Quelle est l'id de la ligue ?\n /Continue pour en rajouter une suivante.\n /Suivant pour passer à la suite")
 
     return IDFOOTBALL
@@ -333,17 +306,17 @@ def config_football(update: Update, context: CallbackContext) -> str:
 def add_id_football(update: Update, context: CallbackContext) -> str:
     ligue_football = str(update.message.text)
     if ligue_football in League_id_football:
-        context.bot.send_message(chat_id=id, text="La ligue " + ligue_football + " est déjà enregistrée.")
+        context.bot.send_message(chat_id=user_id, text="La ligue " + ligue_football + " est déjà enregistrée.")
     else:
         League_id_football.append(ligue_football)
-        context.bot.send_message(chat_id=id, text="La ligue " + ligue_football + " a été rajoutée.")
+        context.bot.send_message(chat_id=user_id, text="La ligue " + ligue_football + " a été rajoutée.")
 
     return NEWFOOTBALLLIGUE
 
 
-def reminder_football(update: Update, context: CallbackContext) -> str:
+def config_reminder_football(update: Update, context: CallbackContext) -> str:
     reply_keyboard = [['Oui', 'Non']]
-    context.bot.send_message(chat_id=id, text="Souhaitez-vous un rappel automatique pour faire votre équipe ?",
+    context.bot.send_message(chat_id=user_id, text="Souhaitez-vous un rappel automatique pour faire votre équipe ?",
                              reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True), )
 
     return REMINDERFOOTBALL
@@ -351,24 +324,29 @@ def reminder_football(update: Update, context: CallbackContext) -> str:
 
 def end_football_conversation(update: Update, context: CallbackContext) -> str:
     if str(update.message.text) == "Oui":
+        cron = CronTab(user=True)
+        job = cron.new(command="python3 ./Reminder/Football.py")
+        job.hour.on(9)
+        cron.write()
         print_league_football = ', '.join(League_id_football)
-        context.bot.send_message(chat_id=id, text="Voici le récapitulatif de vos paramètres football.\n"
+        context.bot.send_message(chat_id=user_id, text="Voici le récapitulatif de vos paramètres football.\n"
                                                   "Rappel : " + str(update.message.text)
-                                                  + " \n" + 'Vous avez ajouté les ligues suivantes : ' + print_league_football)
+                                                       + " \n" + 'Vous avez ajouté les ligues suivantes : ' + print_league_football)
         # envoyer message final avec list Ligue, et si Reminder.
     elif str(update.message.text) == "Non":
         print_league_football = ', '.join(League_id_football)
-        context.bot.send_message(chat_id=id, text="Voici le récapitulatif de vos paramètres football.\n"
+        context.bot.send_message(chat_id=user_id, text="Voici le récapitulatif de vos paramètres football.\n"
                                                   "Rappel : " + str(update.message.text) + " \n"
-                                                  + 'Vous avez ajouté les ligues suivantes : ' + print_league_football)
+                                                       + 'Vous avez ajouté les ligues suivantes : ' + print_league_football)
 
     return ConversationHandler.END
 
 
-# Rajouter un bout de conversation pour identifier l'équipe du joueur parmis l'ensemble des équipes
-# Heure rappel par défaut : 09:00, paramétrage ou prédef à voir dans une future maj ?
-# Rajouter date création de la ligue dans la config car year = en cours ne fonctionnera pas début 2023 pour une ligue créer en 2022
-# Infos : connaitre joueur indispo ; prochaine oppo avec rappel ; résumé résultat après chaque semaine ; résumé quotidien des nouvelles activités
+# Function to send message from another py file
+def send(text):
+    updater = Updater(Token)
+    updater.dispatcher.bot.sendMessage(chat_id=user_id, text=text)
+
 
 # Principal function
 def main() -> None:
@@ -406,7 +384,7 @@ def main() -> None:
         fallbacks=[CommandHandler("cancel", cancel)],
     )
 
-    # Add the conversation handler for delete ligue in list
+    # Add the conversation handler for delete ligue in variable
     delete_mpg_handler = ConversationHandler(
         entry_points=[CommandHandler("Delete", delete_mpg_league)],
         states={
@@ -421,16 +399,17 @@ def main() -> None:
         fallbacks=[CommandHandler("cancel", cancel)],
     )
 
+    # Add conversation handler to config espn football league
     config_football_handler = ConversationHandler(
         entry_points=[MessageHandler(Filters.regex("Football"), config_football)],
         states={
             IDFOOTBALL: [
                 MessageHandler(Filters.text & (~Filters.command), add_id_football),
-                CommandHandler("Suivant", reminder_football),
+                CommandHandler("Suivant", config_reminder_football),
             ],
             NEWFOOTBALLLIGUE: [
                 CommandHandler("Continue", config_football),
-                CommandHandler("Suivant", reminder_football),
+                CommandHandler("Suivant", config_reminder_football),
             ],
             REMINDERFOOTBALL: [
                 MessageHandler(Filters.regex("Oui"), end_football_conversation),
@@ -440,7 +419,7 @@ def main() -> None:
         fallbacks=[CommandHandler("cancel", cancel)],
     )
 
-    # More to come
+    # Add conversation handler to congif espn hockey
     config_espn_handler = ConversationHandler(
         entry_points=[MessageHandler(Filters.regex("ESPN"), config_espn)],
         states={
@@ -449,11 +428,11 @@ def main() -> None:
             ],
             IDHOCKEY: [
                 MessageHandler(Filters.text & (~Filters.command), add_id_hockey),
-                CommandHandler("Suivant", reminder_hockey),
+                CommandHandler("Suivant", config_reminder_hockey),
             ],
             NEWHOCKEYLIGUE: [
                 CommandHandler("Continue", config_hockey),
-                CommandHandler("Suivant", reminder_hockey),
+                CommandHandler("Suivant", config_reminder_hockey),
             ],
             REMINDERHOCKEY: [
                 MessageHandler(Filters.regex("Oui"), end_hockey_conversation),
@@ -463,15 +442,18 @@ def main() -> None:
         fallbacks=[CommandHandler("cancel", cancel)],
     )
 
-    # List of command
+    # List of handlers
     dp.add_handler(conv_handler)
     dp.add_handler(config_mpg_handler)
     dp.add_handler(config_espn_handler)
     dp.add_handler(delete_mpg_handler)
     dp.add_handler(config_football_handler)
+
+    # List of commands
     dp.add_handler(CommandHandler("start", start))
     dp.add_handler(CallbackQueryHandler(callback_query_handler))
     dp.add_handler(CommandHandler("superleague", superleague))
+
     # For unknow command
     dp.add_handler(MessageHandler(Filters.command, unknow))
 
@@ -483,6 +465,4 @@ def main() -> None:
 
 
 if __name__ == '__main__':
-    Process(target=boucle_reminder_mpg).start()
-    Process(target=boucle_reminder_hockey).start()
     main()
