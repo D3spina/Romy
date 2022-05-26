@@ -30,6 +30,7 @@ def score_day_hockey(league, year, team) -> tuple:
     return home_t, home_s, away_t, away_s
 
 
+# Same function but for football
 def score_day_football(league, year, team) -> tuple:
     data = Football_league(league_id=league, year=year)
     team_id = team - 1
